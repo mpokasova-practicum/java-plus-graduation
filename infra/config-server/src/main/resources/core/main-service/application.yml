@@ -1,0 +1,17 @@
+server:
+  port: 0
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:25432/ewm-db
+    username: ewm-db
+    password: ewm-db
+  sql:
+    init:
+      mode: always
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
