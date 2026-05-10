@@ -1,3 +1,6 @@
+server:
+  port: 0
+
 spring:
   application:
     name: config-server
@@ -11,9 +14,6 @@ spring:
             - classpath:config/stats/{application}
             - classpath:config/infra/{application}
             - classpath:config/core/{application}
-
-server:
-  port: 0
 
 eureka:
   client:
