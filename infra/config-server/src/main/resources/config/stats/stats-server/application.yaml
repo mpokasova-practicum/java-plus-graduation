@@ -1,0 +1,20 @@
+server:
+  port: 0
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:15432/stat-db
+    username: stat-db
+    password: stat-db
+  sql:
+    init:
+      mode: always
+
+hibernate:
+  show_sql: false
+  jdbc:
+    time_zone: UTC

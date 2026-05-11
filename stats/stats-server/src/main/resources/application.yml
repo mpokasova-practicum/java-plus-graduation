@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: stats-server
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      discovery:
+        service-id: config-server
+        enabled: true
+      fail-fast: true
+      retry:
+        use-random-policy: true
+        max-interval: 6000
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname:localhost}:${eureka.instance.port:8761}/eureka/
+    register-with-eureka: true
