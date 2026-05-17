@@ -435,49 +435,49 @@ public class EventServiceImpl implements EventService {
         return dto;
     }
 
-//    private Map<Long, Long> getConfirmedRequests(List<Long> eventIds) {
-//        if (eventIds.isEmpty()) return Map.of();
-//
-//        try {
-//            Map<Long, Long> result = requestClient.getConfirmedRequestsCount(eventIds);
-//            log.debug("Получены подтвержденные запросы для {} событий", result.size());
-//
-//            return eventIds.stream()
-//                    .collect(Collectors.toMap(
-//                            id -> id,
-//                            id -> result.getOrDefault(id, 0L)
-//                    ));
-//
-//        } catch (Exception e) {
-//            log.warn("Не удалось получить подтвержденные запросы для {} событий: {}",
-//                    eventIds.size(), e.getMessage());
-//            return eventIds.stream()
-//                    .collect(Collectors.toMap(
-//                            id -> id,
-//                            id -> 0L
-//                    ));
-//        }
-//    }
-
     private Map<Long, Long> getConfirmedRequests(List<Long> eventIds) {
         if (eventIds.isEmpty()) return Map.of();
 
-        Map<Long, Long> result = new HashMap<>();
+        try {
+            Map<Long, Long> result = requestClient.getConfirmedRequestsCount(eventIds);
+            log.debug("Получены подтвержденные запросы для {} событий", result.size());
 
-        for (Long eventId : eventIds) {
-            try {
-                Long count = requestClient.countByStatus(eventId, RequestStatus.CONFIRMED);
-                result.put(eventId, count != null ? count : 0L);
-                log.debug("Получено {} подтвержденных запросов для события {}", count, eventId);
-            } catch (Exception e) {
-                log.warn("Не удалось получить подтвержденные запросы для события {}: {}",
-                        eventId, e.getMessage());
-                result.put(eventId, 0L);
-            }
+            return eventIds.stream()
+                    .collect(Collectors.toMap(
+                            id -> id,
+                            id -> result.getOrDefault(id, 0L)
+                    ));
+
+        } catch (Exception e) {
+            log.warn("Не удалось получить подтвержденные запросы для {} событий: {}",
+                    eventIds.size(), e.getMessage());
+            return eventIds.stream()
+                    .collect(Collectors.toMap(
+                            id -> id,
+                            id -> 0L
+                    ));
         }
-
-        return result;
     }
+
+//    private Map<Long, Long> getConfirmedRequests(List<Long> eventIds) {
+//        if (eventIds.isEmpty()) return Map.of();
+//
+//        Map<Long, Long> result = new HashMap<>();
+//
+//        for (Long eventId : eventIds) {
+//            try {
+//                Long count = requestClient.countByStatus(eventId, RequestStatus.CONFIRMED);
+//                result.put(eventId, count != null ? count : 0L);
+//                log.debug("Получено {} подтвержденных запросов для события {}", count, eventId);
+//            } catch (Exception e) {
+//                log.warn("Не удалось получить подтвержденные запросы для события {}: {}",
+//                        eventId, e.getMessage());
+//                result.put(eventId, 0L);
+//            }
+//        }
+//
+//        return result;
+//    }
 
     private UserShortDto getUserShortDto(Long userId) {
         try {

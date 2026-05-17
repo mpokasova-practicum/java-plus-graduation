@@ -7,6 +7,7 @@ import ru.practicum.repository.RequestRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/internal/requests")
@@ -22,6 +23,13 @@ public class InternalRequestController {
 
     @PostMapping("/events/count/confirmed")
     public Map<Long, Long> getConfirmedRequestsCount(@RequestBody List<Long> eventIds) {
-        return requestRepository.countConfirmedByEventIds(eventIds);
+        if (eventIds.isEmpty()) return Map.of();
+
+        List<Object[]> results = requestRepository.countConfirmedByEventIds(eventIds);
+        return results.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
     }
 }

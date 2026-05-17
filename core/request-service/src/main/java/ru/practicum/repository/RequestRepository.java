@@ -7,7 +7,6 @@ import ru.practicum.enums.RequestStatus;
 import ru.practicum.model.Request;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<Request, Long> {
@@ -31,5 +30,5 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
             FROM Request r
             WHERE r.eventId IN :eventIds AND r.status = 'CONFIRMED' GROUP BY r.eventId
             """)
-    Map<Long, Long> countConfirmedByEventIds(@Param("eventIds") List<Long> eventIds);
+    List<Object[]> countConfirmedByEventIds(@Param("eventIds") List<Long> eventIds);
 }
