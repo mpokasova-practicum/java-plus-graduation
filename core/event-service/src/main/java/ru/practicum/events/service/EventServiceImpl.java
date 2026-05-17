@@ -1,5 +1,6 @@
 package ru.practicum.events.service;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
@@ -51,7 +51,9 @@ public class EventServiceImpl implements EventService {
 
         List<Event> events = eventRepository.findAllByInitiatorIdOrderByCreatedOnDesc(userId, pageable);
 
-        if (events.isEmpty()) return List.of();
+        if (events.isEmpty()) {
+            return List.of();
+        }
 
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
@@ -113,8 +115,11 @@ public class EventServiceImpl implements EventService {
             hit("/events/" + eventId, ip);
             return buildFullDto(event);
 
-        } catch (Exception e) {
-            log.warn("Сервис пользователей недоступен или пользователь не найден, userId={}", userId);
+        } catch (NotFoundException e) {
+            log.warn("Пользователь не найден, userId={}", userId);
+            throw e;
+        } catch (FeignException e) {
+            log.warn("Сервис пользователей недоступен");
             Event event = getEventOrThrow(eventId);
             hit("/events/" + eventId, ip);
             return buildFullDto(event);
@@ -180,64 +185,88 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> allEvents(SearchEventPublicRequest request, Pageable pageable, String ip) {
-
         validateRangeStartAndEnd(request.rangeStart(), request.rangeEnd());
 
-        Specification<Event> specification = SearchEventSpecifications.addWhereNull();
-        if (request.text() != null && !request.text().trim().isEmpty())
-            specification = specification.and(SearchEventSpecifications.addLikeText(request.text()));
-        if (request.categories() != null && !request.categories().isEmpty())
-            specification = specification.and(SearchEventSpecifications.addWhereCategories(request.categories()));
-        if (request.paid() != null)
-            specification = specification.and(SearchEventSpecifications.isPaid(request.paid()));
-        LocalDateTime rangeStart = (request.rangeStart() == null && request.rangeEnd() == null) ?
-                LocalDateTime.now() : request.rangeStart();
-        if (rangeStart != null)
-            specification = specification.and(SearchEventSpecifications.addWhereStartsBefore(rangeStart));
-        if (request.rangeEnd() != null)
-            specification = specification.and(SearchEventSpecifications.addWhereEndsAfter(request.rangeEnd()));
-        if (request.onlyAvailable())
-            specification = specification.and(SearchEventSpecifications.addWhereAvailableSlots());
-
+        Specification<Event> specification = buildSpecification(request);
         List<Event> events = eventRepository.findAll(specification, pageable).getContent();
 
-        if (events.isEmpty()) return List.of();
+        if (events.isEmpty()) {
+            return List.of();
+        }
 
+        List<EventShortDto> dtos = enrichEventsWithDetails(events);
+        dtos = sortByRequest(dtos, request.sort());
+
+        hit("/events", ip);
+        return dtos;
+    }
+
+    private Specification<Event> buildSpecification(SearchEventPublicRequest request) {
+        Specification<Event> spec = SearchEventSpecifications.addWhereNull();
+
+        if (request.text() != null && !request.text().trim().isEmpty()) {
+            spec = spec.and(SearchEventSpecifications.addLikeText(request.text()));
+        }
+        if (request.categories() != null && !request.categories().isEmpty()) {
+            spec = spec.and(SearchEventSpecifications.addWhereCategories(request.categories()));
+        }
+        if (request.paid() != null) {
+            spec = spec.and(SearchEventSpecifications.isPaid(request.paid()));
+        }
+        LocalDateTime rangeStart = (request.rangeStart() == null && request.rangeEnd() == null) ?
+                LocalDateTime.now() : request.rangeStart();
+        if (rangeStart != null) {
+            spec = spec.and(SearchEventSpecifications.addWhereStartsBefore(rangeStart));
+        }
+        if (request.rangeEnd() != null) {
+            spec = spec.and(SearchEventSpecifications.addWhereEndsAfter(request.rangeEnd()));
+        }
+        if (request.onlyAvailable()) {
+            spec = spec.and(SearchEventSpecifications.addWhereAvailableSlots());
+        }
+        return spec;
+    }
+
+    private List<EventShortDto> enrichEventsWithDetails(List<Event> events) {
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .toList();
-
         EventStatistics stats = getEventStatistics(eventIds);
         Map<Long, UserShortDto> userCache = new HashMap<>();
 
-        List<EventShortDto> result = events.stream()
-                .map(event -> {
-                    EventShortDto dto = eventMapper.toShortDto(event);
-                    dto.setConfirmedRequests(stats.confirmedRequests().getOrDefault(event.getId(), 0L));
-                    dto.setViews(stats.views().getOrDefault(event.getId(), 0L));
-
-                    UserShortDto initiatorDto = userCache.computeIfAbsent(
-                            event.getInitiatorId(),
-                            this::getUserShortDto
-                    );
-                    dto.setInitiator(initiatorDto);
-                    return dto;
-                })
+        return events.stream()
+                .map(event -> enrichEventWithDetails(event, stats, userCache))
                 .toList();
+    }
 
-        hit("/events", ip);
+    private EventShortDto enrichEventWithDetails(Event event,
+                                                 EventStatistics stats,
+                                                 Map<Long, UserShortDto> userCache) {
+        EventShortDto dto = eventMapper.toShortDto(event);
+        dto.setConfirmedRequests(stats.confirmedRequests().getOrDefault(event.getId(), 0L));
+        dto.setViews(stats.views().getOrDefault(event.getId(), 0L));
 
-        if (EventSort.VIEWS.equals(request.sort())) {
-            return result.stream()
+        UserShortDto initiatorDto = userCache.computeIfAbsent(
+                event.getInitiatorId(),
+                this::getUserShortDto
+        );
+        dto.setInitiator(initiatorDto);
+
+        return dto;
+    }
+
+    private List<EventShortDto> sortByRequest(List<EventShortDto> dtos, EventSort sort) {
+        if (sort == null) return dtos;
+
+        return switch (sort) {
+            case VIEWS -> dtos.stream()
                     .sorted(Comparator.comparing(EventShortDto::getViews).reversed())
                     .toList();
-        } else if (EventSort.EVENT_DATE.equals(request.sort())) {
-            return result.stream()
+            case EVENT_DATE -> dtos.stream()
                     .sorted(Comparator.comparing(EventShortDto::getEventDate))
                     .toList();
-        }
-
-        return result;
+            default -> dtos;
+        };
     }
 
     @Override
@@ -409,21 +438,25 @@ public class EventServiceImpl implements EventService {
     private Map<Long, Long> getConfirmedRequests(List<Long> eventIds) {
         if (eventIds.isEmpty()) return Map.of();
 
-        Map<Long, Long> result = new HashMap<>();
+        try {
+            Map<Long, Long> result = requestClient.getConfirmedRequestsCount(eventIds);
+            log.debug("Получены подтвержденные запросы для {} событий", result.size());
 
-        for (Long eventId : eventIds) {
-            try {
-                Long count = requestClient.countByStatus(eventId, RequestStatus.CONFIRMED);
-                result.put(eventId, count != null ? count : 0L);
-                log.debug("Получено {} подтвержденных запросов для события {}", count, eventId);
-            } catch (Exception e) {
-                log.warn("Не удалось получить подтвержденные запросы для события {}: {}",
-                        eventId, e.getMessage());
-                result.put(eventId, 0L);
-            }
+            return eventIds.stream()
+                    .collect(Collectors.toMap(
+                            id -> id,
+                            id -> result.getOrDefault(id, 0L)
+                    ));
+
+        } catch (Exception e) {
+            log.warn("Не удалось получить подтвержденные запросы для {} событий: {}",
+                    eventIds.size(), e.getMessage());
+            return eventIds.stream()
+                    .collect(Collectors.toMap(
+                            id -> id,
+                            id -> 0L
+                    ));
         }
-
-        return result;
     }
 
     private UserShortDto getUserShortDto(Long userId) {

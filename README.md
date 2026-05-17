@@ -50,6 +50,8 @@
 
 ## Внутренний API для взаимодействия сервисов
 
+Ссылка на спецификацию API взаимодействия сервисов: https://raw.githubusercontent.com/yandex-praktikum/java-explore-with-me/main/ewm-main-service-spec.json
+
 ### Основные эндпоинты
 
 ### События (Events)
