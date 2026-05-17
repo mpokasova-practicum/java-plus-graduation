@@ -312,6 +312,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EventFullDto> getEventsAdmin(SearchEventAdminRequest request, Pageable pageable) {
         log.info("Поиск событий с параметрами: users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
                 request.users(), request.states(), request.categories(), request.rangeStart(), request.rangeEnd(), request.from(), request.size());
