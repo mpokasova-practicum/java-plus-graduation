@@ -80,13 +80,16 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional
     public EventFullDto addEvent(Long userId, NewEventDto eventCreateDto) {
         log.info("Валидация даты и времени события");
         validateEventDate(eventCreateDto.eventDate(), EventState.PENDING);
 
         checkUserExists(userId);
+        return addEventInTransaction(userId, eventCreateDto);
+    }
 
+    @Transactional
+    protected EventFullDto addEventInTransaction(Long userId, NewEventDto eventCreateDto) {
         Category category = categoryRepository.findById(eventCreateDto.category())
                 .orElseThrow(() -> new NotFoundException("Категория с id=" + eventCreateDto.category() + " не найдена"));
 
@@ -121,16 +124,24 @@ public class EventServiceImpl implements EventService {
         } catch (FeignException e) {
             log.warn("Сервис пользователей недоступен");
             Event event = getEventOrThrow(eventId);
+            if (!event.getInitiatorId().equals(userId)) {
+                throw new NotFoundException("Событие c id " + eventId + " не найдено у пользователя с id " + userId);
+            }
             hit("/events/" + eventId, ip);
             return buildFullDto(event);
         }
     }
 
     @Override
-    @Transactional
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest eventUpdateDto) {
         checkUserExists(userId);
 
+        Event updatedEvent = updateEventInTransaction(userId, eventId, eventUpdateDto);
+        return buildFullDto(updatedEvent);
+    }
+
+    @Transactional
+    public Event updateEventInTransaction(Long userId, Long eventId, UpdateEventUserRequest eventUpdateDto) {
         Event event = getEventOrThrow(eventId);
 
         if (!event.getInitiatorId().equals(userId))
@@ -157,8 +168,7 @@ public class EventServiceImpl implements EventService {
                 event.canceled();
         }
 
-        Event updatedEvent = eventRepository.save(event);
-        return buildFullDto(updatedEvent);
+        return eventRepository.save(event);
     }
 
     private void validateEventDate(LocalDateTime eventDate, EventState currentState) {
@@ -367,10 +377,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional
     public EventFullDto updateEventAdmin(Long eventId, UpdateEventAdminRequest request) {
         log.info("Обновление события с id = {} администратором: {}", eventId, request);
 
+        Event updatedEvent = updateEventAdminInTransaction(eventId, request);
+
+        return buildFullDto(updatedEvent);
+
+    }
+
+    @Transactional
+    protected Event updateEventAdminInTransaction(Long eventId, UpdateEventAdminRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не найдено"));
 
@@ -406,8 +423,7 @@ public class EventServiceImpl implements EventService {
         log.info("Обновлено событие с id={}, title={}, initiatorId={}",
                 updatedEvent.getId(), updatedEvent.getTitle(), updatedEvent.getInitiatorId());
 
-        return buildFullDto(updatedEvent);
-
+        return updatedEvent;
     }
 
     private void validateRangeStartAndEnd(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
