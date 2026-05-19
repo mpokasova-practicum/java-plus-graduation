@@ -23,20 +23,21 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final EventClient eventClient;
     private final UserClient userClient;
     private final CommentMapper commentMapper;
 
-    @Transactional
     @Override
     public CommentDto createComment(long authorId, long eventId, NewCommentDto newCommentDto) {
         checkUserExists(authorId);
-
         EventFullDto event = eventClient.getEvent(eventId);
+        return createCommentInTransaction(authorId, eventId, newCommentDto, event);
+    }
 
+    @Transactional
+    public CommentDto createCommentInTransaction(long authorId, long eventId, NewCommentDto newCommentDto, EventFullDto event) {
         if (authorId == event.getInitiator().getId()) {
             throw new ConflictException("Инициатор мероприятия не может оставлять комментарии к нему");
         }

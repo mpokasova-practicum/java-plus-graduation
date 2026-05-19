@@ -26,7 +26,6 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final RequestMapper requestMapper;
@@ -47,9 +46,13 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    @Transactional
     public EventRequestStatusUpdateResult updateUserEventRequests(Long userId, Long eventId, EventRequestStatusUpdateRequest dto) {
         checkUserExists(userId);
+        return updateUserEventRequestsInTransaction(userId, eventId, dto);
+    }
+
+    @Transactional
+    public EventRequestStatusUpdateResult updateUserEventRequestsInTransaction(Long userId, Long eventId, EventRequestStatusUpdateRequest dto) {
         EventFullDto event = eventClient.getEvent(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
@@ -139,11 +142,14 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
         checkUserExists(userId);
         EventFullDto event = eventClient.getEvent(eventId);
+        return addRequestInTransaction(userId, eventId, event);
+    }
 
+    @Transactional
+    public ParticipationRequestDto addRequestInTransaction(Long userId, Long eventId, EventFullDto event) {
         if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
             throw new ConflictException("Нельзя добавить повторный запрос");
         }
@@ -180,10 +186,13 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         checkUserExists(userId);
+        return cancelRequestInTransaction(userId, requestId);
+    }
 
+    @Transactional
+    public ParticipationRequestDto cancelRequestInTransaction(Long userId, Long requestId) {
         Request request = requestRepository.findByIdAndRequesterId(requestId, userId)
                 .orElseThrow(() -> new NotFoundException("Запрос с id=" + requestId + " не найден"));
 
