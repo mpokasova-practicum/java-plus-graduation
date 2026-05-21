@@ -30,7 +30,7 @@
         <spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-        <maprstruct.version>1.6.2</maprstruct.version>
+        <mapstruct.version>1.6.2</mapstruct.version>
         <querydsl.version>5.1.0</querydsl.version>
         <stats-client.version>0.0.1-SNAPSHOT</stats-client.version>
         <stats-dto.version>0.0.1-SNAPSHOT</stats-dto.version>
@@ -55,12 +55,12 @@
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
-                <version>${maprstruct.version}</version>
+                <version>${mapstruct.version}</version>  <!-- Fixed property name -->
             </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
-                <version>${maprstruct.version}</version>
+                <version>${mapstruct.version}</version>  <!-- Fixed property name -->
             </dependency>
             <dependency>
                 <groupId>com.querydsl</groupId>

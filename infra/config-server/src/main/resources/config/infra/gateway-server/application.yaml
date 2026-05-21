@@ -1,16 +1,37 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: gateway
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false
       routes:
-        - id: main_service_route
-          uri: lb://main-service
+        - id: user-service
+          uri: lb://user-service
           predicates:
-            - Path=/**
+            - Path=/admin/users/**
+
+        - id: request_service_route
+          uri: lb://request-service
+          predicates:
+            - Path=/internal/requests/**,/users/*/requests/**,/users/*/events/*/requests/**
+
+        - id: event_service_route
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**,/events/**,/users/*/events/**,/admin/categories/**,/categories/**,/admin/compilations/**,/compilations/**
+
+        - id: comment_service_route
+          uri: lb://comment-service
+          predicates:
+            - Path=/admin/comments/**,/users/*/comments/**,/users/*/events/*/comments/**,/events/*/comments/**
+
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: DEBUG

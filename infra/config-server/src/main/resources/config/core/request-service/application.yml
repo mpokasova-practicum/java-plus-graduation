@@ -1,0 +1,27 @@
+server:
+  port: 0
+
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:25434/requests
+    username: requests
+    password: requests
+
+stats-server:
+  url: http://localhost:9090
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.explorewithme.main: DEBUG
