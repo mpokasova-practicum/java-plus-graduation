@@ -23,4 +23,10 @@ public class RequestClientFallback implements RequestClient {
         log.warn("Сервис запросов недоступен для batch, eventIds={}", eventIds);
         return eventIds.stream().collect(Collectors.toMap(id -> id, id -> 0L));
     }
+
+    @Override
+    public Boolean hasUserConfirmedRequest(Long userId, Long eventId) {  // ✅ ДОБАВИТЬ
+        log.warn("Сервис запросов недоступен, userId={}, eventId={}", userId, eventId);
+        return false;
+    }
 }

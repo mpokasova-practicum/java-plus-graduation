@@ -32,4 +32,10 @@ public class InternalRequestController {
                         row -> (Long) row[1]
                 ));
     }
+
+    @GetMapping("/user/{userId}/event/{eventId}/confirmed")
+    public Boolean hasUserConfirmedRequest(@PathVariable Long userId, @PathVariable Long eventId) {
+        return requestRepository.existsByRequesterIdAndEventIdAndStatus(
+                userId, eventId, RequestStatus.CONFIRMED);
+    }
 }
