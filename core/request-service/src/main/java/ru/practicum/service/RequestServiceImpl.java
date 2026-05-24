@@ -251,7 +251,7 @@ public class RequestServiceImpl implements RequestService {
             UserActionProto action = UserActionProto.newBuilder()
                     .setUserId(userId)
                     .setEventId(eventId)
-                    .setActionType(ActionTypeProto.REGISTER)
+                    .setActionType(ActionTypeProto.ACTION_REGISTER)
                     .setTimestamp(Timestamp.newBuilder()
                             .setSeconds(Instant.now().getEpochSecond())
                             .setNanos(Instant.now().getNano())
