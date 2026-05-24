@@ -115,6 +115,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         return recommendationsMapper.mapToProto(sumOfScoresByEvent);
     }
 
+    @Override
+    public HasUserInteractionResponseProto hasUserInteraction(Long userId, Long eventId) {
+        boolean hasInteraction = userActionRepository.existsByUserIdAndEventId(userId, eventId);
+        return HasUserInteractionResponseProto.newBuilder()
+                .setHasInteraction(hasInteraction)
+                .build();
+    }
+
     private Map<Long, Double> predictScores(List<EventSimilarity> candidates,
                                             List<Long> recentUserEvents,
                                             Map<Long, Double> userScores,

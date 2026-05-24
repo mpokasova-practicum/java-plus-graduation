@@ -49,6 +49,21 @@ public class AnalyzerClient {
         }
     }
 
+    public boolean hasUserInteraction(Long userId, Long eventId) {
+        try {
+            HasUserInteractionRequestProto request = HasUserInteractionRequestProto.newBuilder()
+                    .setUserId(userId)
+                    .setEventId(eventId)
+                    .build();
+            HasUserInteractionResponseProto response = analyzerStub.hasUserInteraction(request);
+            return response.getHasInteraction();
+        } catch (StatusRuntimeException e) {
+            log.error("Ошибка проверки взаимодействия пользователя {} с событием {}: {}",
+                    userId, eventId, e.getMessage());
+            return false;
+        }
+    }
+
     private Stream<RecommendedEventProto> asStream(Iterator<RecommendedEventProto> iterator) {
         return StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED),

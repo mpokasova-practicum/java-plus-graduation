@@ -40,6 +40,33 @@ public class RecommendationsController extends RecommendationsControllerGrpc.Rec
         handleStreamResponse(recommendationService.getInteractionsCount(request), responseObserver);
     }
 
+    @Override
+    public void hasUserInteraction(HasUserInteractionRequestProto request,
+                                   StreamObserver<HasUserInteractionResponseProto> responseObserver) {
+        long userId = request.getUserId();
+        long eventId = request.getEventId();
+
+        log.info("gRPC запрос проверки взаимодействия: userId={}, eventId={}", userId, eventId);
+
+        try {
+            HasUserInteractionResponseProto response = recommendationService.hasUserInteraction(userId, eventId);
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+            log.debug("Пользователь {} {} взаимодействовал с событием {}",
+                    userId, response.getHasInteraction() ? "" : "не", eventId);
+
+        } catch (Exception e) {
+            log.error("Ошибка при проверке взаимодействия: userId={}, eventId={}, error={}",
+                    userId, eventId, e.getMessage(), e);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(e.getMessage())
+                    .withCause(e)
+                    .asRuntimeException());
+        }
+    }
+
     private void handleStreamResponse(Stream<RecommendedEventProto> stream,
                                       StreamObserver<RecommendedEventProto> responseObserver) {
         try (Stream<RecommendedEventProto> safeStream = stream) {

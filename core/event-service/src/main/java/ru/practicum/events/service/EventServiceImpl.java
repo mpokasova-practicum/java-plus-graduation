@@ -541,7 +541,7 @@ public class EventServiceImpl implements EventService {
 
     private boolean hasUserVisitedEvent(Long userId, Long eventId) {
         try {
-            return requestClient.hasUserConfirmedRequest(userId, eventId);
+            return analyzerClient.hasUserInteraction(userId, eventId);
         } catch (Exception e) {
             log.warn("Не удалось проверить посещение события", e);
             return false;

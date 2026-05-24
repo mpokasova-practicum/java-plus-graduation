@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface UserActionRepository extends JpaRepository<UserAction, Long> {
+    Boolean existsByUserIdAndEventId(Long userId, Long eventId);
 
     Optional<UserAction> findByUserIdAndEventId(Long userId, Long eventId);
 

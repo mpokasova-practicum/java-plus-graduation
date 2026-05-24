@@ -14,4 +14,6 @@ public interface RecommendationService {
     Stream<RecommendedEventProto> getSimilarEvents(SimilarEventsRequestProto request);
 
     Stream<RecommendedEventProto> getInteractionsCount(InteractionsCountRequestProto request);
+
+    HasUserInteractionResponseProto hasUserInteraction(Long userId, Long eventId);
 }

@@ -19,4 +19,7 @@ service RecommendationsController {
 
   rpc GetInteractionsCount (messages.action.InteractionsCountRequestProto)
       returns (stream messages.action.RecommendedEventProto);
+
+  rpc HasUserInteraction (messages.action.HasUserInteractionRequestProto)
+      returns (stream messages.action.HasUserInteractionResponseProto)
 }
