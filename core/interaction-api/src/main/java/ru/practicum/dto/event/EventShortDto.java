@@ -17,22 +17,22 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventShortDto {
 
-        Long id;
+    Long id;
 
-        String annotation;
+    String annotation;
 
-        CategoryDto category;
+    CategoryDto category;
 
-        Long confirmedRequests;
+    Long confirmedRequests;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateTimePattern.DATE_TIME_PATTERN)
-        LocalDateTime eventDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateTimePattern.DATE_TIME_PATTERN)
+    LocalDateTime eventDate;
 
-        UserShortDto initiator;
+    UserShortDto initiator;
 
-        Boolean paid;
+    Boolean paid;
 
-        String title;
+    String title;
 
-        Long views;
+    Double rating;
 }
