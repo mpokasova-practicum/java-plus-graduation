@@ -21,5 +21,5 @@ service RecommendationsController {
       returns (stream messages.action.RecommendedEventProto);
 
   rpc HasUserInteraction (messages.action.HasUserInteractionRequestProto)
-      returns (stream messages.action.HasUserInteractionResponseProto)
+      returns (stream messages.action.HasUserInteractionResponseProto);
 }
