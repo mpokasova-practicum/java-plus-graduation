@@ -9,6 +9,8 @@ import "stats/messages/interactions_count_request.proto";
 import "stats/messages/recommended_event.proto";
 import "stats/messages/similar_events_request.proto";
 import "stats/messages/user_predictions_request.proto";
+import "stats/messages/has_user_interaction_request.proto";
+import "stats/messages/has_user_interaction_response.proto";
 
 service RecommendationsController {
   rpc GetRecommendationsForUser (messages.action.UserPredictionsRequestProto)
