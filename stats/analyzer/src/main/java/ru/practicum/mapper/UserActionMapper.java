@@ -11,9 +11,9 @@ import java.util.Map;
 public class UserActionMapper {
 
     private static final Map<ActionTypeAvro, Double> WEIGHTS = Map.of(
-            ActionTypeAvro.VIEW, 0.4,
-            ActionTypeAvro.REGISTER, 0.8,
-            ActionTypeAvro.LIKE, 1.0
+            ActionTypeAvro.ACTION_VIEW, 0.4,
+            ActionTypeAvro.ACTION_REGISTER, 0.8,
+            ActionTypeAvro.ACTION_LIKE, 1.0
     );
 
     public UserAction toEntity(UserActionAvro avro) {

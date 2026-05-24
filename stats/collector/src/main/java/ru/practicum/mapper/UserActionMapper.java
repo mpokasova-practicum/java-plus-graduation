@@ -31,9 +31,9 @@ public class UserActionMapper {
 
     private ActionTypeAvro convertActionType(ActionTypeProto protoType) {
         return switch (protoType) {
-            case VIEW -> ActionTypeAvro.VIEW;
-            case REGISTER -> ActionTypeAvro.REGISTER;
-            case LIKE -> ActionTypeAvro.LIKE;
+            case ACTION_VIEW -> ActionTypeAvro.VIEW;
+            case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
+            case ACTION_LIKE -> ActionTypeAvro.LIKE;
             case UNRECOGNIZED -> throw new IllegalArgumentException(
                     "Неизвестный тип действия: " + protoType);
         };

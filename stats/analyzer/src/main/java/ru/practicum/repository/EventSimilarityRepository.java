@@ -47,12 +47,12 @@ public interface EventSimilarityRepository extends JpaRepository<EventSimilarity
 
     @Query("""
             SELECT s FROM EventSimilarity s
-            WHERE (s.eventA = :candidateId AND s.eventB IN :userEvents)
-               OR (s.eventB = :candidateId AND s.eventA IN :userEvents)
+            WHERE (s.eventA = :candidateIds AND s.eventB IN :userEvents)
+               OR (s.eventB = :candidateIds AND s.eventA IN :userEvents)
             ORDER BY s.score DESC
             """)
-    List<EventSimilarity> findNeighboursAmongUserEvents(
-            @Param("candidateId") Long candidateId,
-            @Param("userEvents") List<Long> userEvents,
-            Pageable pageable);
+    List<EventSimilarity> findAllNeighboursForCandidates(
+            @Param("candidateId") List<Long> candidateIds,
+            @Param("userEvents") List<Long> userEvents
+    );
 }

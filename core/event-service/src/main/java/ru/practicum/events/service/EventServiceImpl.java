@@ -398,7 +398,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if (!hasUserVisitedEvent(userId, eventId)) {
-            throw new ValidationException("Нельзя лайкнуть непосещенное мероприятие");
+            throw new BadRequestException("Нельзя лайкнуть непосещенное мероприятие");
         }
 
         UserActionProto action = UserActionProto.newBuilder()
@@ -412,14 +412,6 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         collectorClient.sendUserAction(action);
-    }
-
-    private Long getEventIdFromUri(String uri) {
-        try {
-            return Long.parseLong(uri.substring("/events".length() + 1));
-        } catch (Exception e) {
-            return -1L;
-        }
     }
 
     private void validateEventDate(LocalDateTime eventDate, EventState currentState) {

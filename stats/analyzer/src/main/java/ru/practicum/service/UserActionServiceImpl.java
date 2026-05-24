@@ -23,6 +23,7 @@ public class UserActionServiceImpl implements UserActionService {
             UserAction oldUserAction = maybeUserAction.get();
             if (userAction.getUserScore() > oldUserAction.getUserScore()) {
                 oldUserAction.setUserScore(userAction.getUserScore());
+                oldUserAction.setTimestamp(userAction.getTimestamp());
                 userActionRepository.save(oldUserAction);
 
                 log.debug("Обновлен вес пользователя: userId={}, eventId={}, score={}",

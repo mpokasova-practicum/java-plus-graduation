@@ -66,7 +66,8 @@ public class SimilarityCalculator {
                 similarities.add(similarityMapper.toAvro(
                         eventId,
                         otherEventId,
-                        similarity
+                        similarity,
+                        action.getTimestamp()
                 ));
             }
 

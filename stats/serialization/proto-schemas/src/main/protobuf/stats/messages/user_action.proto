@@ -15,7 +15,7 @@ message UserActionProto {
 }
 
 enum ActionTypeProto {
-  VIEW = 0;
-  REGISTER = 1;
-  LIKE = 2;
+  ACTION_VIEW = 0;
+  ACTION_REGISTER = 1;
+  ACTION_LIKE = 2;
 }

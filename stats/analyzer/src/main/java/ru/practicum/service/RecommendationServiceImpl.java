@@ -119,29 +119,59 @@ public class RecommendationServiceImpl implements RecommendationService {
                                             List<Long> recentUserEvents,
                                             Map<Long, Double> userScores,
                                             int maxResults) {
-        Map<Long, Double> predictedScores = new HashMap<>();
 
-        Pageable neighboursPage = PageRequest.of(
-                0, maxResults, Sort.by(Sort.Direction.DESC, "score"));
+        if (candidates.isEmpty() || recentUserEvents.isEmpty()) {
+            return Map.of();
+        }
 
+        List<Long> candidateIds = new ArrayList<>();
         for (EventSimilarity candidate : candidates) {
             long candidateId = recentUserEvents.contains(candidate.getEventA())
                     ? candidate.getEventB()
                     : candidate.getEventA();
+            candidateIds.add(candidateId);
+        }
 
-            List<EventSimilarity> neighbours = eventSimilarityRepository.findNeighboursAmongUserEvents(
-                    candidateId, recentUserEvents, neighboursPage
-            );
+        List<EventSimilarity> allNeighbours = eventSimilarityRepository.findAllNeighboursForCandidates(
+                candidateIds, recentUserEvents
+        );
+
+        Map<Long, List<EventSimilarity>> neighboursByCandidate = new HashMap<>();
+        for (EventSimilarity neighbour: allNeighbours) {
+            Long candidateId = null;
+            if (candidateIds.contains(neighbour.getEventA())
+                    && recentUserEvents.contains(neighbour.getEventB())) {
+                candidateId = neighbour.getEventA();
+            } else if (candidateIds.contains(neighbour.getEventB()) && recentUserEvents.contains(neighbour.getEventA())) {
+                candidateId = neighbour.getEventB();
+            }
+
+            if (candidateId != null) {
+                neighboursByCandidate
+                        .computeIfAbsent(candidateId, k -> new ArrayList<>())
+                        .add(neighbour);
+            }
+        }
+
+        Map<Long, Double> predictedScores = new HashMap<>();
+
+        for (Long candidateId : candidateIds) {
+            List<EventSimilarity> neighbours = neighboursByCandidate.getOrDefault(candidateId, List.of());
 
             if (neighbours.isEmpty()) {
                 log.debug("Нет соседей среди просмотренных для кандидата {}", candidateId);
                 continue;
             }
 
+            List<EventSimilarity> topNeighbours = neighbours.stream()
+                    .sorted((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                    .limit(maxResults)
+                    .toList();
+
             double weightedSum = 0.0;
             double similaritySum = 0.0;
 
-            for (EventSimilarity neighbour : neighbours) {
+            for (EventSimilarity neighbour : topNeighbours) {
                 long neighbourId = neighbour.getEventA().equals(candidateId)
                         ? neighbour.getEventB()
                         : neighbour.getEventA();
