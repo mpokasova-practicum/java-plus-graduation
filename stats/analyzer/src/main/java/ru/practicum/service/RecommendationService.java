@@ -1,9 +1,6 @@
 package ru.practicum.service;
 
-import ru.practicum.ewm.stats.proto.InteractionsCountRequestProto;
-import ru.practicum.ewm.stats.proto.RecommendedEventProto;
-import ru.practicum.ewm.stats.proto.SimilarEventsRequestProto;
-import ru.practicum.ewm.stats.proto.UserPredictionsRequestProto;
+import ru.practicum.ewm.stats.proto.*;
 
 import java.util.stream.Stream;
 
